@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptInject - Manage Your Custom Scripts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .hero {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        
+        .integration-code {
+            background: #1a1a1a;
+            color: #00ff88;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            margin: 20px auto;
+            max-width: 700px;
+            text-align: left;
+            position: relative;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #00ff88;
+            color: #1a1a1a;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .panel {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .panel h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            resize: vertical;
+            background: #f8f9fa;
+            transition: border-color 0.3s ease;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-top: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+        
+        .script-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .script-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .script-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .script-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .script-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .script-controls .btn {
+            padding: 8px 16px;
+            font-size: 12px;
+            margin: 0;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: white;
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+        
+        .info-box {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .integration-code {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🚀 ScriptInject</h1>
+        <p>Inject custom JavaScript into any website with one line of code. Scripts are stored in your browser's localStorage and persist across visits.</p>
+        
+        <div class="integration-code">
+            <button class="copy-btn" onclick="copyIntegrationCode()">Copy</button>
+            <div id="integrationCode">&lt;script src="https://yourusername.github.io/scriptinject/embed.js"&gt;&lt;/script&gt;</div>
+        </div>
+        
+        <p style="margin-top: 15px; font-size: 0.9rem; color: #888;">
+            Add this line to any website's &lt;head&gt; tag to enable custom script injection!
+        </p>
+    </div>
+    
+    <div class="container">
+        <div class="dashboard">
+            <div class="panel">
+                <h3>🛠 Script Editor</h3>
+                <input type="text" id="scriptName" placeholder="Script name (e.g., 'Welcome Popup')">
+                <textarea id="scriptCode" placeholder="Write your JavaScript code here...
+
+// Example: Create a welcome popup
+const popup = document.createElement('div');
+popup.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    z-index: 999999;
+    text-align: center;
+    font-family: Inter, sans-serif;
+    max-width: 400px;
+`;
+
+popup.innerHTML = `
+    <h2 style='margin:0 0 15px 0'>Welcome! 👋</h2>
+    <p style='margin:0 0 20px 0'>This is a custom injected script!</p>
+    <button onclick='this.parentElement.remove()' style='background:white;color:#667eea;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600'>Close</button>
+`;
+
+document.body.appendChild(popup);
+
+// Auto-close after 10 seconds
+setTimeout(() => {
+    if (popup.parentElement) popup.remove();
+}, 10000);"></textarea>
+                
+                <button class="btn" onclick="saveScript()">💾 Save Script</button>
+                <button class="btn btn-secondary" onclick="testScript()">🧪 Test Script</button>
+                <button class="btn btn-secondary" onclick="clearEditor()">🗑 Clear</button>
+                <div id="status" class="status"></div>
+            </div>
+            
+            <div class="panel">
+                <h3>📋 Your Scripts</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn" onclick="exportScripts()">📤 Export Scripts</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import Scripts</button>
+                    <button class="btn btn-danger" onclick="clearAllScripts()">🗑 Clear All</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importScripts(event)">
+                </div>
+                
+                <div id="scriptList" class="script-list"></div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>📖 How It Works</h3>
+            <p><strong>1. Create Scripts:</strong> Write JavaScript code in the editor above and save it.</p>
+            <p><strong>2. Add to Website:</strong> Copy the integration code and paste it into any website's &lt;head&gt; tag.</p>
+            <p><strong>3. Manage Scripts:</strong> Enable/disable scripts, edit them, or delete them. Changes persist in your browser's localStorage.</p>
+            <p><strong>4. Test Locally:</strong> Use the "Test Script" button to see how your script works before deploying.</p>
+            
+            <h3 style="margin-top: 25px;">💡 Example Use Cases</h3>
+            <p>• Custom popups and notifications</p>
+            <p>• Dark mode toggles</p>
+            <p>• Auto-fill forms</p>
+            <p>• Custom styling and themes</p>
+            <p>• Analytics and tracking</p>
+            <p>• Keyboard shortcuts</p>
+        </div>
+    </div>
+
+    <script>
+        // Main script functionality
+        let userScripts = JSON.parse(localStorage.getItem('scriptinject_scripts') || '[]');
+        
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${isError ? 'error' : 'success'}`;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 4000);
+        }
+        
+        function copyIntegrationCode() {
+            const code = document.getElementById('integrationCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showStatus('Integration code copied to clipboard!');
+            }).catch(() => {
+                showStatus('Failed to copy code', true);
+            });
+        }
+        
+        function saveScript() {
+            const name = document.getElementById('scriptName').value.trim();
+            const code = document.getElementById('scriptCode').value.trim();
+            
+            if (!name || !code) {
+                showStatus('Please enter both script name and code', true);
+                return;
+            }
+            
+            // Check if script name already exists
+            const existingIndex = userScripts.findIndex(s => s.name === name);
+            
+            const script = {
+                id: existingIndex >= 0 ? userScripts[existingIndex].id : Date.now(),
+                name: name,
+                code: code,
+                created: existingIndex >= 0 ? userScripts[existingIndex].created : new Date().toLocaleString(),
+                updated: new Date().toLocaleString(),
+                active: existingIndex >= 0 ? userScripts[existingIndex].active : true
+            };
+            
+            if (existingIndex >= 0) {
+                userScripts[existingIndex] = script;
+                showStatus(`Script "${name}" updated successfully!`);
+            } else {
+                userScripts.push(script);
+                showStatus(`Script "${name}" saved successfully!`);
+            }
+            
+            localStorage.setItem('scriptinject_scripts', JSON.stringify(userScripts));
+            updateScriptList();
+            clearEditor();
+        }
+        
+        function testScript() {
+            const code = document.getElementById('scriptCode').value.trim();
+            if (!code) {
+                showStatus('Please enter some code to test', true);
+                return;
+            }
+            
+            executeScript(code, 'Test Script');
+        }
+        
+        function executeScript(code, scriptName = 'Unknown') {
+            try {
+                const script = document.createElement('script');
+                script.textContent = `
+                    (function() {
+                        try {
+                            ${code}
+                        } catch (error) {
+                            console.error('Script execution error in "${scriptName}":', error);
+                            throw error;
+                        }
+                    })();
+                `;
+                document.head.appendChild(script);
+                
+                showStatus(`"${scriptName}" executed successfully! ✨`);
+                
+                // Clean up
+                setTimeout(() => {
+                    if (script.parentElement) script.remove();
+                }, 100);
+            } catch (error) {
+                showStatus(`Error in "${scriptName}": ${error.message}`, true);
+                console.error('Script execution error:', error);
+            }
+        }
+        
+        function toggleScript(id) {
+            const script = userScripts.find(s => s.id === id);
+            if (script) {
+                script.active = !script.active;
+                localStorage.setItem('scriptinject_scripts', JSON.stringify(userScripts));
+                updateScriptList();
+                showStatus(`Script "${script.name}" ${script.active ? 'enabled' : 'disabled'}`);
+            }
+        }
+        
+        function deleteScript(id) {
+            const script = userScripts.find(s => s.id === id);
+            if (script && confirm(`Are you sure you want to delete "${script.name}"?`)) {
+                userScripts = userScripts.filter(s => s.id !== id);
+                localStorage.setItem('scriptinject_scripts', JSON.stringify(userScripts));
+                updateScriptList();
+                showStatus('Script deleted');
+            }
+        }
+        
+        function editScript(id) {
+            const script = userScripts.find(s => s.id === id);
+            if (script) {
+                document.getElementById('scriptName').value = script.name;
+                document.getElementById('scriptCode').value = script.code;
+                showStatus('Script loaded in editor');
+            }
+        }
+        
+        function clearEditor() {
+            document.getElementById('scriptName').value = '';
+            document.getElementById('scriptCode').value = '';
+        }
+        
+        function clearAllScripts() {
+            if (confirm('Are you sure you want to delete all scripts? This cannot be undone.')) {
+                userScripts = [];
+                localStorage.setItem('scriptinject_scripts', JSON.stringify(userScripts));
+                updateScriptList();
+                showStatus('All scripts cleared');
+            }
+        }
+        
+        function exportScripts() {
+            if (userScripts.length === 0) {
+                showStatus('No scripts to export', true);
+                return;
+            }
+            
+            const dataStr = JSON.stringify(userScripts, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `scriptinject-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showStatus('Scripts exported successfully!');
+        }
+        
+        function importScripts(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedScripts = JSON.parse(e.target.result);
+                    if (Array.isArray(importedScripts)) {
+                        userScripts = [...userScripts, ...importedScripts];
+                        localStorage.setItem('scriptinject_scripts', JSON.stringify(userScripts));
+                        updateScriptList();
+                        showStatus(`Imported ${importedScripts.length} scripts successfully!`);
+                    } else {
+                        showStatus('Invalid file format', true);
+                    }
+                } catch (error) {
+                    showStatus('Error reading file', true);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+        
+        function updateScriptList() {
+            const list = document.getElementById('scriptList');
+            
+            if (userScripts.length === 0) {
+                list.innerHTML = '<div style="padding: 30px; text-align: center; color: #666;">No scripts created yet. Create your first script above! 🚀</div>';
+                return;
+            }
+            
+            list.innerHTML = userScripts.map(script => `
+                <div class="script-item">
+                    <div class="script-name">${script.name}</div>
+                    <div class="script-meta">
+                        Created: ${script.created}${script.updated && script.updated !== script.created ? ` • Updated: ${script.updated}` : ''} • 
+                        Status: <strong style="color: ${script.active ? '#51cf66' : '#868e96'}">${script.active ? '🟢 Active' : '⚫ Inactive'}</strong>
+                    </div>
+                    <div class="script-controls">
+                        <button class="btn ${script.active ? 'btn-secondary' : ''}" onclick="toggleScript(${script.id})">
+                            ${script.active ? '⏸ Disable' : '▶️ Enable'}
+                        </button>
+                        <button class="btn btn-secondary" onclick="executeScript(\`${script.code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, '${script.name}')">🧪 Test</button>
+                        <button class="btn btn-secondary" onclick="editScript(${script.id})">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteScript(${script.id})">🗑 Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Initialize
+        updateScriptList();
+        
+        // Update integration code with current GitHub Pages URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDomain = window.location.origin;
+            const integrationCode = document.getElementById('integrationCode');
+            integrationCode.textContent = `<script src="${currentDomain}/embed.js"></script>`;
+        });
+    </script>
+</body>
+</html>
